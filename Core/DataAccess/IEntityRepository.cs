@@ -1,10 +1,14 @@
-﻿using Entities.Abstract;
+﻿using Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace DataAccess.Abstract
+
+//Namespace(İsimUzayı) bizim classlarımızı interfacelerimi belli bir namespace içerisine bırakıyoruzki bunlara kolaylıkla ulaşabilelim diye.İlk ekledigimizde bunu buraya
+//IEntity altını çizmişti ilk akılımıza gelen Core katmanına referans vermek ama referans veremeyiz çünkü o zaman bizim core katmanımız bagımlı olur Entities katmanına o 
+//yüzden IEntity de buraya alıyoruz.IEntity her projede kullanabiliriz.Core katmanı diger katmanları referans almaz.
+namespace Core.DataAccess
 {
     //Generic constraint => Generik kısıt demek.T yi kısıtlayacağız.T bir referans tip olmalı ve T ya IEntity olabilir yada IEntity den implemente eden bir nesne olabilir.
     //new() demek newlenebilir demek IEntity interface oldugu için new lenemez oldugu için IEntity de yazamayız artık.
