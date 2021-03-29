@@ -1,5 +1,6 @@
 ﻿using Core.DataAccess;
 using Entities.Concrete;
+using Entities.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,7 +12,8 @@ namespace DataAccess.Abstract
     //(Data Access Object ).
     //Yani burası bizim Product ile ilgili veritabanında yapacagımız operasyonları içeren interface dir.
     public interface IProductDal:IEntityRepository<Product>
-    { 
-        
+    {
+        //Buraya product'a özel joinleri vs yazıyoruz buraya.
+        List<ProductDetailDto> GetProductDetails();
     }
 }
