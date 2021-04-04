@@ -29,10 +29,21 @@ namespace ConsoleUI
             //ProductManager beni newleyebilmek için hangi veri yöntemini söylemen lazım diyor.
             ProductManager productManager = new ProductManager(new EfProductDal());
 
-            foreach (var product in productManager.GetProductDetails())
+            var result = productManager.GetProductDetails();
+
+            if (result.Success==true)
             {
-                Console.WriteLine(product.ProductName + "/" + product.CategoryName);
+                foreach (var product in result.Data)//Burada GetProductDetails'in Data sına Message'ına ve Success'ına erişebiliyoruz.
+                {
+                    Console.WriteLine(product.ProductName + "/" + product.CategoryName);
+                }
             }
+            else
+            {
+                Console.WriteLine(result.Message);
+            }
+
+            
         }
     }
 }
