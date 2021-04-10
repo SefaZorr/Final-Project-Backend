@@ -34,10 +34,18 @@ namespace Business.Concrete
         {
             _productDal = productDal;
         }
+        //Business kodlar buraya yazılır urunu eklemeden önce kodlarını buraya yazarız herşey geçerli ise ürünü ekleriz degilse eklemeyiz.
 
+        //[LogAspect] => AOP bir metodunun önünde bir metodun sonunda bir metod hata verdiginde çalışan kod parçacıklarını bir AOP mimarisiyle yazıyoruz yani Business içinde
+        //business yazıyoruz.Biz bu Add içerisinde yok loglama yönetimi yok hata yönetimi yok transaction yönetimi yok performans yönetimi yok cache yönetimi yok validasyon
+        //yönetimi hepsini bunun içine koyarsak burası çorba olur.Bu teknik spring boot uygulamalarında default olarak vardır.
+        //[Validate]=> ürün eklenecek kuralları uygula.
+        //[Cache]=>Cache'den çalış
+        //[RemoveCache]=>ürün eklenirse bunu cache'den uçur.
+        //[Transaction]=>Hata olursa geri al demek.
+        //[Performance]=>Bu method benim sistemde performans olarak izledigim bir yapıdır eger çalışması 5 sn geçerse beni uyar.
         public IResult Add(Product product)
         {
-            //Business kodlar buraya yazılır urunu eklemeden önce kodlarını buraya yazarız herşey geçerli ise ürünü ekleriz degilse eklemeyiz.
             if (product.ProductName.Length < 2)
             {
                 return new ErrorResult(Messages.ProductNameInvalid);
@@ -45,12 +53,11 @@ namespace Business.Concrete
             _productDal.Add(product);
             return new SuccessResult(Messages.ProductAdded);
         }
-
+        //Mesela burda kurallara bakıyor yetkisi felan varmı diyelimki geçti o zaman bana ürünleri verebilirsin diyor dataaccess'e gidip.
+        //Bu saat 22 de her gün sistemi kapatıyor ürünlerin listelenmesini kapatıyor mesela.
         public IDataResult<List<Product>> GetAll()
         {
-            //Mesela burda kurallara bakıyor yetkisi felan varmı diyelimki geçti o zaman bana ürünleri verebilirsin diyor dataaccess'e gidip.
-            //Bu saat 22 de her gün sistemi kapatıyor ürünlerin listelenmesini kapatıyor mesela.
-            if (DateTime.Now.Hour == 22)
+            if (DateTime.Now.Hour == 1)
             {
                 return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
             }
