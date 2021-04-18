@@ -38,9 +38,11 @@ namespace WebAPI.Controllers
         [HttpGet("getall")]
         public IActionResult GetAll()
         {
+            #region Not
             //Dependency chain var burada şuan bir bagımlılık zinciri var IProductService bir ProductManager'a ihtiyaç duyuyor ProductManager'da bir IProductDal'a ihtiyaç
             //duyuyor burada aslında bagımlı oldugu kişi ProductManager'in ta kendisidir.
-            //Result Ok ile dönünce 200 ile dönüyor BadRequest ile dönünce 400 ile dönüyor.
+            //Result Ok ile dönünce 200 ile dönüyor BadRequest ile dönünce 400 ile dönüyor. 
+            #endregion
             var result = _productService.GetAll();
             if (result.Success)
             {
