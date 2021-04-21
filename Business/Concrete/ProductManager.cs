@@ -1,8 +1,10 @@
 ﻿using Business.Abstract;
+using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
+using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using DataAccess.Concrete.InMemory;
@@ -11,6 +13,7 @@ using Entities.DTOs;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Business.Concrete
@@ -46,15 +49,21 @@ namespace Business.Concrete
     #endregion
     public class ProductManager : IProductService
     {
+        #region Not
         //Burada artık iş kodlarını yazıyoruz.
-        //Bir iş sınıfı başka sınıfları new'lemez.
+        //Bir iş sınıfı başka sınıfları new'lemez. 
+        //Bir entity manager kendisi hariç başka dal'ı enjekte edemez.Bunun yerine başka bir servisi enjekte edebiliyoruz.
+        #endregion
 
         IProductDal _productDal;
-
-        public ProductManager(IProductDal productDal)
+        ICategoryService _categoryService;
+        public ProductManager(IProductDal productDal,ICategoryService categoryService)
         {
-            _productDal = productDal; 
+            _productDal = productDal;
+            _categoryService = categoryService;
+
         }
+
         #region Not
         //Business kodlar buraya yazılır urunu eklemeden önce kodlarını buraya yazarız herşey geçerli ise ürünü ekleriz degilse eklemeyiz.
 
@@ -72,19 +81,33 @@ namespace Business.Concrete
         //AOP=>Örnegin siz metotlarınızı loglamak istiyorsunuz bir metot ne zaman loglanır ya başında ya sonunda veya hata verdiginde işte sen uygulamanın başında sonunda
         //hata verdiginde çalışmasını istedigin kodların varsa onları AOP yöntemiyle güzel güzel design edebilirsin dolayısıyla uygulamada her yerde try catch gibi kodlar
         //yazmak zorunda kalmazsınız yada her yerde log log demek zorunda kalmazsınız işte bu yönteme interception deniyor.(interceptors(araya girme metodun başı sonu gibi)).
-        
+
         //Attribute niye kullanıyoruz attribute şu işe yarıyor sen bir kodu çagıracagın zaman Add'i çarıgracagın zaman diyorsinki git üstüne bak bakalım belli kurala uyan
         //attribute'lar varmı varsa gidip onları çalıştırıyorsun.Kısaca attribute'lar property'lere field'lara metotlara classlara anlam yüklemek için kullandıgımız
         //yapılardır.
         #endregion
 
+        #region Not
         //Bu metodu dogrula ProductValidator'u kullanarak.
+        //İş kurallarını bu şekilde içine yazamayız böyle yazarsan istedigin kadar katmanlı mimari kullan yine spagetti yazarsın. 
+        #endregion
+
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
+            //Aynı isimde ürün eklenemez
+            //Eğer mevcut kategori sayısı 15'i geçtiyse sisteme yeni ürün eklenemez.
+            IResult result = BusinessRules.Run(CheckIfProductNameExist(product.ProductName),
+                CheckIfProductCountOfCategoryCorrect(product.CategoryId), CheckIfCategoryLimitExceded());
+
+            if (result != null)
+            {
+                return result;
+            }
 
             _productDal.Add(product);
             return new SuccessResult(Messages.ProductAdded);
+
         }
         #region Not
         //Mesela burda kurallara bakıyor yetkisi felan varmı diyelimki geçti o zaman bana ürünleri verebilirsin diyor dataaccess'e gidip.
@@ -96,7 +119,7 @@ namespace Business.Concrete
             {
                 return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
             }
-            return new SuccessDataResult<List<Product>>(_productDal.GetAll(),Messages.ProductsListed);
+            return new SuccessDataResult<List<Product>>(_productDal.GetAll(), Messages.ProductsListed);
         }
 
         public IDataResult<List<Product>> GetAllByCategoryId(int id)
@@ -114,9 +137,51 @@ namespace Business.Concrete
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.UnitPrice >= min && p.UnitPrice <= max));
         }
 
-        public IDataResult<List<ProductDetailDto>> GetProductDetails()  
+        public IDataResult<List<ProductDetailDto>> GetProductDetails()
         {
             return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
+        }
+
+        [ValidationAspect(typeof(ProductValidator))]
+        public IResult Update(Product product)
+        {
+            var result = _productDal.GetAll(p => p.CategoryId == product.CategoryId).Count;
+            if (result >= 10)
+            {
+                return new ErrorResult(Messages.ProductCountOfCategoryError);
+            }
+            throw new NotImplementedException();
+        }
+
+        private IResult CheckIfProductCountOfCategoryCorrect(int categoryId)
+        {
+            //Select Count(*) from products where categeoryId=1 aşagıdaki kod verilerin hepsini çekip sonra sorgu yapmaz direk sorguyu veritabanına gönderir.
+            var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
+            if (result >= 15)
+            {
+                return new ErrorResult(Messages.ProductCountOfCategoryError);
+            }
+            return new SuccessResult();
+        }
+
+        private IResult CheckIfProductNameExist(string productName)
+        {
+            var result = _productDal.GetAll(p => p.ProductName == productName).Any();
+            if (result)
+            {
+                return new ErrorResult(Messages.ProductNameAlreadyExists);
+            }
+            return new SuccessResult();
+        }
+
+        private IResult CheckIfCategoryLimitExceded()
+        {
+            var result = _categoryService.GetAll();
+            if (result.Data.Count > 15)
+            {
+                return new ErrorResult(Messages.CategoryLimitExceded);
+            }
+            return new SuccessResult();
         }
     }
 }
