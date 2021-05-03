@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
@@ -92,6 +93,8 @@ namespace Business.Concrete
         //İş kurallarını bu şekilde içine yazamayız böyle yazarsan istedigin kadar katmanlı mimari kullan yine spagetti yazarsın. 
         #endregion
 
+        //Claim
+        [SecuredOperation("Prouduct.add,editor")]
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {

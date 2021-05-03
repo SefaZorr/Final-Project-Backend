@@ -1,15 +1,20 @@
 using Business.Abstract;
 using Business.Concrete;
+using Core.Utilities.Security.Encryption;
+using Core.Utilities.Security.JWT;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +50,28 @@ namespace WebAPI
             services.AddControllers();
             //services.AddSingleton<IProductService, ProductManager>();
             //services.AddSingleton<IProductDal, EfProductDal>();
+
+            #region Not
+            //Bu kýsýmda bir bu sistemde Authentication olarak JwtBearerDefaults token kullanýlacak haberin olsun dedigimiz yer burasý yani biz Asp.net web apiye diyorizki
+            //bu sistemde jwt kullanýlacak haberin olsun. 
+            #endregion
+
+            var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidIssuer = tokenOptions.Issuer,
+                        ValidAudience = tokenOptions.Audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
+                    };
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +86,10 @@ namespace WebAPI
 
             app.UseRouting();
 
+            #region Not
+            //Middleware Asp.net yaþam döngüsünde hangi yapýlarýn sýrasýyla devreye girecegini söylüyoruz.Önceden klasik Asp.net uygulamlarýnda bunlar böyle tanýmlýydý ama
+            //ihtiyacýnýz olsun olmasýn devreye giriyordu artýk öyle degil sizin neye ihtiyacýnýz varsa onu o araya sokuyorsunuz. 
+            #endregion
             app.UseAuthentication();
 
             app.UseAuthorization();
