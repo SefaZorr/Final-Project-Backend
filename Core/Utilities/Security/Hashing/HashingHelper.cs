@@ -23,7 +23,7 @@ namespace Core.Utilities.Security.Hashing
         }
 
         #region Not
-        //Password hashini dogrula demek.Bu metot burada out gerek yok çünkü bu degerleri biz vericez diyecezki belim elimde böyle bir şifre var adam 1234@1234 girdi sen
+        //Password hashini dogrula demek.Bu metot burada out gerek yok çünkü bu degerleri biz vericez diyecezki benim elimde böyle bir şifre var adam 1234@1234 girdi sen
         //bunu bu kullancının girdigi password'ü yine aynı algoritmayı kullanarak hasheleseydin karşına böyle birşey çıkarmıydı çıkmazmıydı buradaki parametler olarak
         //verilen passwordHas ve passwordSalt veritabanımızdaki hash olucak bu hash ile kullancının gösterdigi password in oluşacak hashe ini karşılaştırıyoruz eger eşit ise
         //true eşit degilse false diyecegiz.Buradaki passoword kullanıcının sisteme tekrar girmek için kullandıgı parola. 

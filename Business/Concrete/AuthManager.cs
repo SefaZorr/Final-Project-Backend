@@ -39,7 +39,7 @@ namespace Business.Concrete
             };
             _userService.Add(user);
             return new SuccessDataResult<User>(user,"Kayıt oldu");
-        }
+        }  
 
         public IDataResult<User> Login(UserForLoginDto userForLoginDto)
         {

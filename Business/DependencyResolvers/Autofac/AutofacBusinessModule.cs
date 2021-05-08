@@ -37,7 +37,6 @@ namespace Business.DependencyResolvers.Autofac
             builder.RegisterType<AuthManager>().As<IAuthService>();
             builder.RegisterType<JwtHelper>().As<ITokenHelper>();
 
-            builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>();
 
             #region Not
             //Burası şimdi yukarıda bizi kayıt ettigimiz sınıflar peki biz ne dedik neden Autofac kullanıyoruz dedik çünkü Autofac kullanmamızın sebebi .net mimarisindede var

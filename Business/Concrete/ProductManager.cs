@@ -3,6 +3,9 @@ using Business.BusinessAspects.Autofac;
 using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
@@ -94,12 +97,13 @@ namespace Business.Concrete
         #endregion
 
         //Claim
-        [SecuredOperation("Prouduct.add,editor")]
+        [SecuredOperation("product.add,admin")]
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
             //Aynı isimde ürün eklenemez
-            //Eğer mevcut kategori sayısı 15'i geçtiyse sisteme yeni ürün eklenemez.
+            //Eğer mevcut kategori sayısı 15'i geçtiyse sisteme yeni ürün eklenemez. 
             IResult result = BusinessRules.Run(CheckIfProductNameExist(product.ProductName),
                 CheckIfProductCountOfCategoryCorrect(product.CategoryId), CheckIfCategoryLimitExceded());
 
@@ -116,6 +120,8 @@ namespace Business.Concrete
         //Mesela burda kurallara bakıyor yetkisi felan varmı diyelimki geçti o zaman bana ürünleri verebilirsin diyor dataaccess'e gidip.
         //Bu saat 22 de her gün sistemi kapatıyor ürünlerin listelenmesini kapatıyor mesela. 
         #endregion
+
+        [CacheAspect] //key,value
         public IDataResult<List<Product>> GetAll()
         {
             if (DateTime.Now.Hour == 1)
@@ -130,6 +136,8 @@ namespace Business.Concrete
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryId == id));
         }
 
+        [CacheAspect]
+        [PerformanceAspect(5)]
         public IDataResult<Product> GetById(int productId)
         {
             return new SuccessDataResult<Product>(_productDal.Get(p => p.ProductId == productId));
@@ -145,7 +153,12 @@ namespace Business.Concrete
             return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
         }
 
+        #region Not
+        //Eger CacheRemoveAspect("Get") böyle yazarsan bellekteki tüm Get'leri içerisinde Get olan tüm key'leri iptal et demek dolayısıyla sen ürünü güncellemişken her yerdeki
+        //cache'i silersin o yüzden uyanıklık yapıyoruz. 
+        #endregion
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Update(Product product)
         {
             var result = _productDal.GetAll(p => p.CategoryId == product.CategoryId).Count;
@@ -186,5 +199,18 @@ namespace Business.Concrete
             }
             return new SuccessResult();
         }
+
+        [TransactionScopeAspect]
+        public IResult AddTransactionalTest(Product product)
+        {
+            Add(product);
+            if (product.UnitPrice < 10)
+            {
+                throw new Exception("");
+            }
+            Add(product);
+            return null;
+        }
     }
 }
+

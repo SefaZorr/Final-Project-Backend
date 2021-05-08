@@ -1,5 +1,8 @@
 using Business.Abstract;
 using Business.Concrete;
+using Core.DependencyResolver;
+using Core.Extensions;
+using Core.Utilities.IoC;
 using Core.Utilities.Security.Encryption;
 using Core.Utilities.Security.JWT;
 using DataAccess.Abstract;
@@ -48,12 +51,14 @@ namespace WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            //services.AddSingleton<IProductService, ProductManager>();
-            //services.AddSingleton<IProductDal, EfProductDal>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();  
 
             #region Not
             //Bu kýsýmda bir bu sistemde Authentication olarak JwtBearerDefaults token kullanýlacak haberin olsun dedigimiz yer burasý yani biz Asp.net web apiye diyorizki
-            //bu sistemde jwt kullanýlacak haberin olsun. 
+            //bu sistemde jwt kullanýlacak haberin olsun.
+            //HttpContextAccessor aslýnda her yapýlan istekle ile ilgili oluþan context diyebiliriz yani bizim clientimiz bir istek yaptýgýnda o istegin baþlangýcýndan
+            //bitiþine kadar yani istek request in yapýlmasýndan yanýt response verilmesine kadar ki süreçte o kullanýcýnýn o isteginin takip edilmesi iþlemini bu 
+            //HttpContextAccessor yapýyor.
             #endregion
 
             var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
@@ -72,6 +77,9 @@ namespace WebAPI
                         IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
                     };
                 });
+            services.AddDependencyResolvers(new ICoreModule[] {
+                new CoreModule()
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
