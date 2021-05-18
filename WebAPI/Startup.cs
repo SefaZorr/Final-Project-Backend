@@ -51,7 +51,10 @@ namespace WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();  
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddCors();
+
 
             #region Not
             //Bu kýsýmda bir bu sistemde Authentication olarak JwtBearerDefaults token kullanýlacak haberin olsun dedigimiz yer burasý yani biz Asp.net web apiye diyorizki
@@ -89,6 +92,8 @@ namespace WebAPI
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(builder => builder.WithOrigins("http://localhost:4200").AllowAnyHeader());
 
             app.UseHttpsRedirection();
 
