@@ -70,6 +70,17 @@ namespace WebAPI.Controllers
             return BadRequest(result);
         }
 
+        [HttpGet("getbycategory")]
+        public IActionResult GetByCategory(int categoryId)
+        {
+            var result = _productService.GetAllByCategoryId(categoryId);
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result);
+        }
+
         #region Not
         //Bir data eklemek için HttpPost requestinde bulunuyoruz.Yani post request yapılırsa.Datayı güncelleme ve silme içince post kullanabiliriz.Ama güncelleme için
         //HttpPut'u silme için HttpDelete 'ide kullanabilirsin.
